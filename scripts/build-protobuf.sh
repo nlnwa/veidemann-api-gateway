@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 rm -rf veidemann_api html/swagger/*
-mkdir veidemann_api
+mkdir -p veidemann_api html/swagger
 cd protobuf
 
 bin/protoc -I. \

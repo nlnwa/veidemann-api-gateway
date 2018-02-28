@@ -4,8 +4,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 		unzip \
 	&& rm -rf /var/lib/apt/lists/*
 
-COPY . /go/src/github.com/nlnwa/veidemann-ws-api-gateway
-RUN cd /go/src/github.com/nlnwa/veidemann-ws-api-gateway \
+#COPY . /go/src/github.com/nlnwa/veidemann-ws-api-gateway
+RUN go get github.com/nlnwa/veidemann-ws-api-gateway \
+  ; cd /go/src/github.com/nlnwa/veidemann-ws-api-gateway \
  && go generate \
  && CGO_ENABLED=0 go build -tags netgo
 

@@ -15,4 +15,5 @@ LABEL maintainer="nettarkivet@nb.no"
 EXPOSE 3010
 ENV CONTROLLER_HOST=localhost CONTROLLER_PORT=50051
 COPY --from=0 /go/src/github.com/nlnwa/veidemann-ws-api-gateway/veidemann-ws-api-gateway /
+COPY --from=0 /go/src/github.com/nlnwa/veidemann-ws-api-gateway/html /html
 CMD ["/veidemann-ws-api-gateway", "-logtostderr", "-controller_endpoint", "${CONTROLLER_HOST}:${CONTROLLER_PORT}"]

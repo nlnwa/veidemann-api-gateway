@@ -104,7 +104,9 @@ func main() {
 	flag.Parse()
 	defer glog.Flush()
 
-	glog.Info("Starting api-gateway on port 3010")
+	glog.Info("Starting api-gateway")
+	glog.Info("Connecting to ", *controllerEndpoint)
+	glog.Info("Listening on ", *listenAddress)
 	if err := run(*listenAddress); err != nil {
 		glog.Fatal(err)
 	}

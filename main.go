@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	gw "github.com/nlnwa/veidemann-ws-api-gateway/veidemann_api"
+	api "github.com/nlnwa/veidemann-ws-api-gateway/veidemann_api"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"net/http"
 	"path"
@@ -17,19 +17,20 @@ var (
 	controllerEndpoint = flag.String("controller_endpoint", "localhost:50051", "endpoint of Controller")
 	listenAddress      = flag.String("listenAddress", ":3010", "Address this server listens to. Can be just ':port' to listen on all interfaces")
 	swaggerDir         = flag.String("swagger_dir", "html", "path to the directory which contains swagger definitions")
+	pathPrefix         = flag.String("path_prefix", "/", "http router prefix path")
 )
 
 func newGateway(ctx context.Context, opts ...runtime.ServeMuxOption) (http.Handler, error) {
 	mux := runtime.NewServeMux(opts...)
 	dialOpts := []grpc.DialOption{grpc.WithInsecure()}
 
-	if err := gw.RegisterControllerHandlerFromEndpoint(ctx, mux, *controllerEndpoint, dialOpts); err != nil {
+	if err := api.RegisterControllerHandlerFromEndpoint(ctx, mux, *controllerEndpoint, dialOpts); err != nil {
 		return nil, err
 	}
-	if err := gw.RegisterReportHandlerFromEndpoint(ctx, mux, *controllerEndpoint, dialOpts); err != nil {
+	if err := api.RegisterReportHandlerFromEndpoint(ctx, mux, *controllerEndpoint, dialOpts); err != nil {
 		return nil, err
 	}
-	if err := gw.RegisterStatusHandlerFromEndpoint(ctx, mux, *controllerEndpoint, dialOpts); err != nil {
+	if err := api.RegisterStatusHandlerFromEndpoint(ctx, mux, *controllerEndpoint, dialOpts); err != nil {
 		return nil, err
 	}
 
@@ -85,19 +86,18 @@ func run(address string, opts ...runtime.ServeMuxOption) error {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/swagger/", serveSwagger)
-	mux.HandleFunc("/swaggerui/", serveSwaggerUi)
+	mux.HandleFunc(*pathPrefix+"/swagger/", serveSwagger)
+	mux.HandleFunc(*pathPrefix+"/swaggerui/", serveSwaggerUi)
 
 	gw, err := newGateway(ctx, opts...)
 	if err != nil {
 		return err
 	}
-	mux.Handle("/", gw)
+	mux.Handle(*pathPrefix, gw)
 
 	return http.ListenAndServe(address, allowCORS(wsproxy.WebsocketProxy(mux)))
 }
 
-////go:generate dep ensure -vendor-only
 //go:generate scripts/get-dependencies.sh
 //go:generate scripts/build-protobuf.sh
 func main() {
@@ -107,6 +107,7 @@ func main() {
 	glog.Info("Starting api-gateway")
 	glog.Info("Connecting to ", *controllerEndpoint)
 	glog.Info("Listening on ", *listenAddress)
+	glog.Info("Serving from ", *pathPrefix)
 	if err := run(*listenAddress); err != nil {
 		glog.Fatal(err)
 	}

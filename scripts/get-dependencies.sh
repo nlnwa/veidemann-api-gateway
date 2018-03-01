@@ -14,7 +14,12 @@ rm protoc-3.5.1-linux-x86_64.zip
 # Download Veidemann API
 wget -O - -q https://github.com/nlnwa/veidemann-api/archive/${API_VERSION}.tar.gz | tar --strip-components=2 -zx
 
+
 go get -u github.com/golang/protobuf/proto
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 go get -u github.com/golang/protobuf/protoc-gen-go
+
+# Get dependencies via dep
+go get -u github.com/golang/dep/cmd/dep
+dep ensure -vendor-only -v

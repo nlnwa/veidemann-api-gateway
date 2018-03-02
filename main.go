@@ -81,7 +81,7 @@ func run(address string, opts ...runtime.ServeMuxOption) error {
 	if err != nil {
 		return err
 	}
-	mux.Handle(*pathPrefix, gw)
+	mux.Handle(*pathPrefix + "/", gw)
 
 	return http.ListenAndServe(address, allowCORS(wsproxy.WebsocketProxy(mux)))
 }

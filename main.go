@@ -37,22 +37,10 @@ func newGateway(ctx context.Context, opts ...runtime.ServeMuxOption) (http.Handl
 	return mux, nil
 }
 
-func serveSwagger(w http.ResponseWriter, r *http.Request) {
-	if !strings.HasSuffix(r.URL.Path, ".swagger.json") {
-		glog.Errorf("Not Found: %s", r.URL.Path)
-		http.NotFound(w, r)
-		return
-	}
-
+func serveStatic(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Serving %s", r.URL.Path)
-	p := path.Join(*swaggerDir, r.URL.Path)
-	http.ServeFile(w, r, p)
-}
-
-func serveSwaggerUi(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Serving %s", r.URL.Path)
-	p := strings.TrimPrefix(r.URL.Path, "/swaggerui/")
-	p = path.Join(*swaggerDir, r.URL.Path)
+	p := strings.TrimPrefix(r.URL.Path, *pathPrefix)
+	p = path.Join(*swaggerDir, p)
 	http.ServeFile(w, r, p)
 }
 
@@ -86,8 +74,8 @@ func run(address string, opts ...runtime.ServeMuxOption) error {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(*pathPrefix+"/swagger/", serveSwagger)
-	mux.HandleFunc(*pathPrefix+"/swaggerui/", serveSwaggerUi)
+	mux.HandleFunc(*pathPrefix+"/swagger/", serveStatic)
+	mux.HandleFunc(*pathPrefix+"/swaggerui/", serveStatic)
 
 	gw, err := newGateway(ctx, opts...)
 	if err != nil {
@@ -107,7 +95,6 @@ func main() {
 	glog.Info("Starting api-gateway")
 	glog.Info("Connecting to ", *controllerEndpoint)
 	glog.Info("Listening on ", *listenAddress)
-	glog.Info("Serving from ", *pathPrefix)
 	if err := run(*listenAddress); err != nil {
 		glog.Fatal(err)
 	}

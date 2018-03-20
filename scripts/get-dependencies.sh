@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-API_VERSION=0.1.3
+API_VERSION=0.1.4
 
 rm -rf protobuf
 mkdir protobuf

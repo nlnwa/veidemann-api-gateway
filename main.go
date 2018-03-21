@@ -17,7 +17,6 @@ var (
 	controllerEndpoint = flag.String("controller_endpoint", "localhost:50051", "endpoint of Controller")
 	listenAddress      = flag.String("listenAddress", ":3010", "Address this server listens to. Can be just ':port' to listen on all interfaces")
 	swaggerDir         = flag.String("swagger_dir", "html", "path to the directory which contains swagger definitions")
-	pathPrefix         = flag.String("path_prefix", "/", "http router prefix path")
 )
 
 func newGateway(ctx context.Context, opts ...runtime.ServeMuxOption) (http.Handler, error) {
@@ -37,10 +36,21 @@ func newGateway(ctx context.Context, opts ...runtime.ServeMuxOption) (http.Handl
 	return mux, nil
 }
 
-func serveStatic(w http.ResponseWriter, r *http.Request) {
+func serveSwagger(w http.ResponseWriter, r *http.Request) {
+	if !strings.HasSuffix(r.URL.Path, ".swagger.json") {
+		glog.Errorf("Not Found: %s", r.URL.Path)
+		http.NotFound(w, r)
+		return
+	}
+
 	glog.Infof("Serving %s", r.URL.Path)
-	p := strings.TrimPrefix(r.URL.Path, *pathPrefix)
-	p = path.Join(*swaggerDir, p)
+	p := path.Join(*swaggerDir, r.URL.Path)
+	http.ServeFile(w, r, p)
+}
+
+func serveSwaggerUi(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Serving %s", r.URL.Path)
+	p := path.Join(*swaggerDir, r.URL.Path)
 	http.ServeFile(w, r, p)
 }
 
@@ -74,14 +84,14 @@ func run(address string, opts ...runtime.ServeMuxOption) error {
 	defer cancel()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc(*pathPrefix+"/swagger/", serveStatic)
-	mux.HandleFunc(*pathPrefix+"/swaggerui/", serveStatic)
+	mux.HandleFunc("/swagger/", serveSwagger)
+	mux.HandleFunc("/swaggerui/", serveSwaggerUi)
 
 	gw, err := newGateway(ctx, opts...)
 	if err != nil {
 		return err
 	}
-	mux.Handle(*pathPrefix, gw)
+	mux.Handle("/", gw)
 
 	return http.ListenAndServe(address, allowCORS(wsproxy.WebsocketProxy(mux)))
 }

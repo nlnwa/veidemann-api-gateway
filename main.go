@@ -5,7 +5,7 @@ import (
 	"flag"
 	"github.com/golang/glog"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	api "github.com/nlnwa/veidemann-ws-api-gateway/veidemann_api"
+	api "github.com/nlnwa/veidemann-api-gateway/veidemann_api"
 	"github.com/tmc/grpc-websocket-proxy/wsproxy"
 	"google.golang.org/grpc"
 	"net/http"

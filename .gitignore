@@ -17,5 +17,5 @@
 /protobuf
 /veidemann_api
 /html/swagger/*
-/veidemann-ws-api-gateway
+/veidemann-api-gateway
 /vendor
